@@ -12,30 +12,43 @@ import {ReactComponent as Twitter} from '../images/twitter.svg';
 
 
 
-const Footer = () => {
+const Footer = (props) => {
     //Sub Components: 
     const FooterSection = (subProps) => {
         const {header, list} = subProps.section;
         return (
-            <section className="footer__section">
+            <>
                 <h4 className="bold">{header}</h4>
                 <ul>
-                { list.map(item => <li><Link to={item.to}>{item.name}</Link></li>) }
+                { list.map(item => <li key={item.id}><Link to={item.to}>{item.name}</Link></li>) }
                 </ul>
-            </section>
+            </>
         );
     }
 
 
     return (
-        <footer>
-            { footerInfo.map(section => <FooterSection section={section} />) }
-            <div className="footer__marketing">
-                <img src={footerLogo} alt="Flipin"/>
-                <div className="footer__marketing-social">
-                    <a target="_blank" rel="noreferrer" href="https://instagram.com"><Instagram /></a>
-                    <a target="_blank" rel="noreferrer" href="https://linkedin.com"><LinkedIn /></a>
-                    <a target="_blank" rel="noreferrer" href="https://twitter.com"><Twitter /></a>
+        <footer>  
+            {
+                !props.isLoggedIn 
+                &&            
+                <div className="footer__message">
+                   <h1>Join Us as a Seller&nbsp;or Customer</h1>
+                </div>
+            }
+            <div className="footer">
+                { footerInfo.map(section => (
+                    <section key={section.id} className="footer__section">
+                        <FooterSection section={section} />
+                    </section> 
+                ))}
+                <div className="footer__marketing"> 
+                    <img src={footerLogo} alt="Flipin"/>
+                    <div className="footer__marketing-social">
+                        <a target="_blank" rel="noreferrer" href="https://instagram.com"><Instagram /></a>
+                        <a target="_blank" rel="noreferrer" href="https://linkedin.com"><LinkedIn /></a>
+                        <a target="_blank" rel="noreferrer" href="https://twitter.com"><Twitter /></a>
+                    </div>
                 </div>
             </div>
         </footer>

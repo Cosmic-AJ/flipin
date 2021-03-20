@@ -1,4 +1,4 @@
-import { useContext, useState, useEffect, useRef } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { UserContext } from './Interface';
 import AccountCircleIcon from '@material-ui/icons/AccountCircle';
 
@@ -22,19 +22,32 @@ const Header = () => {
 
     //Variable Initialization
     const { state, dispatch } = useContext(UserContext);
-    const sideBar = useRef();
 
     //Sub-Components
     const RenderListItems = () => {
         if(state){
             return (
-                <>
-                <NavItem to="/home" text="HOME" />
-                <NavItem to="/login" onClick={() => {
+              <>
+                <NavItem to="/dashboard" text="DASHBOARD" />
+                <NavItem to="/inbox" text="INBOX" />
+                <NavItem to="/orders" text="ORDERS" />
+                <NavItem to="/profile" text="PROFILE" />
+                {state.isSeller ? (
+                  <NavItem to="/browse" text="BROWSE LISTINGS" />
+                ) : (
+                  <NavItem to="/create" text="CREATE LISTINGS" />
+                )}
+
+                <NavItem
+                  to="/login"
+                  className="highlight"
+                  onClick={() => {
                     localStorage.clear();
-                    dispatch({type: "CLEAR"});
-                }} text="LOGOUT" />        
-                </>
+                    dispatch({ type: "CLEAR" });
+                  }}
+                  text="LOGOUT"
+                />
+              </>
             );
         } else {
             return (
@@ -60,7 +73,7 @@ const Header = () => {
                 <div className="line"></div>
             </div>
             { menuOpen && <div className="backdrop" style={{
-                opacity: "0.4"   
+                opacity: "0.4", zIndex: 2,   
             }} onClick={()=>setMenuopen(false)}></div>}
             
             <Link to="/" onClick={()=>setMenuopen(false)}>
@@ -71,7 +84,7 @@ const Header = () => {
                 <RenderListItems />
             </ul>
 
-            <div ref={sideBar} className="navbar__mobile-menu" style={menuOpen? ({left: '0vw'}) : ({left: '-70vw'})}>
+            <div className="navbar__mobile-menu" style={menuOpen? ({left: '0vw'}) : ({left: '-70vw'})}>
                 <ul onClick={() => setMenuopen(false)}>
                     <RenderListItems />
                 </ul>
