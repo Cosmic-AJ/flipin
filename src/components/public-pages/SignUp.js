@@ -4,12 +4,12 @@ import { Tooltip } from '@material-ui/core';
 import ErrorOutlineIcon from '@material-ui/icons/ErrorOutline';
 import axios from 'axios';
 
-import validations from '../helperFunctions/validation';
-import { UserContext } from './Interface';
+import validations from '../../helperFunctions/validation';
+import { UserContext } from '../Interface';
 
 // Media Imports
-import { ReactComponent as Google } from '../images/google.svg';
-import { ReactComponent as Facebook } from '../images/facebook.svg';
+import { ReactComponent as Google } from '../../images/google.svg';
+import { ReactComponent as Facebook } from '../../images/facebook.svg';
 
 const SignUp = () => {
     const {_, dispatch} = useContext(UserContext);
@@ -60,7 +60,7 @@ const SignUp = () => {
                     localStorage.setItem("jwt",data.jwt);
                     localStorage.setItem("user",JSON.stringify(data.user));
                     dispatch({type: "USER", payload: data.user });
-                    history.push('/dashboard');
+                    history.push('/profile');
                 } else {
                     //show the user an error that occured in the registeration
                     console.log(data.error);

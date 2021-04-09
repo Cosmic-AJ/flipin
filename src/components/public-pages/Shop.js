@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 
 //Relative imports
-import { ReactComponent as Arrow } from '../images/arrow.svg';
+import { ReactComponent as Arrow } from '../../images/arrow.svg';
 import Post from './Post';
-import '../styles/Shop.css';
-import { filterAndSort } from '../helperFunctions/filter';
-import { categories, sortType } from './staticInfo';
+import '../../styles/Shop.css';
+import { filterAndSort } from '../../helperFunctions/filter';
+import { categories, sortType } from '../staticInfo';
 import axios from 'axios';
 import { CircularProgress } from '@material-ui/core';
-import { TrendingUpRounded } from '@material-ui/icons';
 
 const Shop = () => {
-    const [isLoading, setisLoading] = useState(TrendingUpRounded)
+    const [isLoading, setisLoading] = useState(true);
     const [categoryOpen, setCategoryOpen] = useState(false);
     const [itemsArray, setItemsArray] = useState([]);
     const [displayArray, setDisplayArray] = useState([]);
@@ -33,7 +32,7 @@ const Shop = () => {
 
     const handleCategoryChange = (type) => {
         setFilterVar(prev => ({...prev, categories: type}));
-        setDisplayArray(prev => filterAndSort(prev, true, type || "all"));
+        setDisplayArray(prev => filterAndSort(itemsArray, true, type || "all"));
         setCategoryOpen(false);
     }
 
