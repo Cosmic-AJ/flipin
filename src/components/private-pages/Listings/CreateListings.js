@@ -1,6 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useHistory, useLocation } from 'react-router';
-import { LinearProgress, Snackbar, Tooltip } from '@material-ui/core';
+import { CircularProgress, LinearProgress, Snackbar, Tooltip } from '@material-ui/core';
 import MuiAlert from '@material-ui/lab/Alert';
 import axios from 'axios';
 import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
@@ -18,7 +18,6 @@ const CreateListings = (props) => {
    const history = useHistory();
    const { state } = useContext(UserContext);
    const desc = useRef();
-   const reader = new FileReader();
 
    //State
    const [percentage, setPercentage] = useState(0);
@@ -81,6 +80,17 @@ const CreateListings = (props) => {
      }
    }
 
+   const handleSendRequest = (e) => {
+     e.preventDefault();
+     axios
+       .post("http://localhost:5000/classify", {
+         Link:
+           "https://www.byrdie.com/thmb/E6bUS3-TU2v8wmY_Ps2tbZiWVLU=/fit-in/2000x2000/filters:no_upscale():max_bytes(150000):strip_icc()/CharlotteTilbury1-5c2faa98c9e77c0001d727c7.jpg",
+       })
+       .then((res) => console.log(res.data))
+       .catch((e) => console.error(e));
+   }
+
    const handleName = (e) => {
       setName(e.target.value);
       error.name = validation.validateGeneral(e.target.value, "Product Name");
@@ -92,7 +102,7 @@ const CreateListings = (props) => {
       ...prev,
       name: validation.validateGeneral(name, "Product Name"),
       desc: validation.validateDescription(desc.current.value),
-      image: image? undefined :  true,
+      image: image || src? undefined :  true,
     }));
     if (validation.noError(error)) {
       setLoading(true);
@@ -110,38 +120,68 @@ const CreateListings = (props) => {
           }
         },
       };
-
-      axios.post("https://api.cloudinary.com/v1_1/flipin/image/upload", data, options)
-        .then(({ data: {secure_url: url} }) => {
-          const post = {
-            name,
-            description: desc.current.value,
-            category: cat,
-            mediaUrl: url,
-          };
-          axios.post("https://flipin-store-api.herokuapp.com/productpost.php", post, authHeader)
-            .then((res) => {
-              if (res.data.responseCode === 201) {
-                setName("");
-                desc.current.value = "";
-                setImage("");
-                setLoading(false);
-                
-                setToast({
-                  open: true,
-                  severity: "success",
-                  text: "Post created successfully!",
-                });
-              } else {
-                setToast({
-                  open: true,
-                  severity: "error",
-                  text: "Error occured! Please try again.",
-                });
-              }
-            });
+      if(stateFromPush && stateFromPush.src === src){
+        const post = {
+          pid: stateFromPush.pId,
+          name,
+          description: desc.current.value,
+          category: cat,
+          mediaUrl: src,
+        };
+        console.log(stateFromPush);
+        axios.post("https://flipin-store-api.herokuapp.com/editproduct.php", post, authHeader)
+          .then((res) => {
+            if (res.data.responseCode === 204) {
+              setLoading(false);
+              setToast({
+                open: true,
+                severity: "success",
+                text: "Post Edited successfully!",
+              });
+            } else {
+              setToast({
+                open: true,
+                severity: "error",
+                text: "Error occured! Please try again.",
+              });
+            }
+          })
+          .catch(e => console.log(e));
+        
+      } else {
+          axios.post("https://api.cloudinary.com/v1_1/flipin/image/upload", data, options)
+          .then(({ data: {secure_url: url} }) => {
+            const post = {
+              name,
+              description: desc.current.value,
+              category: cat,
+              mediaUrl: url,
+            };
+            axios.post("https://flipin-store-api.herokuapp.com/productpost.php", post, authHeader)
+              .then((res) => {
+                if (res.data.responseCode === 201) {
+                  setName("");
+                  desc.current.value = "";
+                  setImage("");
+                  setLoading(false);
+                  
+                  setToast({
+                    open: true,
+                    severity: "success",
+                    text: "Post created successfully!",
+                  });
+                } else {
+                  setToast({
+                    open: true,
+                    severity: "error",
+                    text: "Error occured! Please try again.",
+                  });
+                }
+              });
         })
         .catch((e) => console.log(e));
+      }
+      
     } else {
       console.log(error);
     }
@@ -232,6 +272,7 @@ const CreateListings = (props) => {
                </label>
              </div>
            </div>
+           <button onClick={handleSendRequest}>Send Request</button>
            <Snackbar
              open={Toast.open}
              autoHideDuration={5000}
@@ -247,7 +288,12 @@ const CreateListings = (props) => {
            )}
 
            <div className="create__form-submit">
-             {!loading && <button onClick={handleSubmit}>Submit</button>}
+             {loading? 
+             <div className="loader">
+               <CircularProgress />
+             </div>
+             :
+             <button onClick={handleSubmit}>Submit</button>}
            </div>
          </form>
        </div>
@@ -255,4 +301,4 @@ const CreateListings = (props) => {
    );
 }
 
-export default CreateListings
+export default CreateListings;
