@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-
 //Relative imports
 import { ReactComponent as Arrow } from '../../images/arrow.svg';
 import Post from './Post';
@@ -8,27 +7,34 @@ import { filterAndSort } from '../../helperFunctions/filter';
 import { categories, sortType } from '../staticInfo';
 import axios from 'axios';
 import { CircularProgress } from '@material-ui/core';
+import { useParams } from 'react-router';
+import { Link } from 'react-router-dom';
 
 const Shop = () => {
-    const [isLoading, setisLoading] = useState(true);
-    const [categoryOpen, setCategoryOpen] = useState(false);
-    const [itemsArray, setItemsArray] = useState([]);
-    const [displayArray, setDisplayArray] = useState([]);
-    const [sortOpen, setSortOpen] = useState(false);
-    const [filterVar, setFilterVar] = useState({
-        sort: "Newest First",
-        categories: "All",
-    });
+  const { category: categoryFromUrl } = useParams();
+  const [isLoading, setisLoading] = useState(true);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [itemsArray, setItemsArray] = useState([]);
+  const [displayArray, setDisplayArray] = useState([]);
+  const [sortOpen, setSortOpen] = useState(false);
+  const [filterVar, setFilterVar] = useState({
+      sort: "Newest First",
+      categories: "All",
+  });
 
     useEffect(() => {
-        axios.get("https://flipin-store-api.herokuapp.com/shop.php")
+      //Post method with a json which sends the categoryFromUrl
+      setisLoading(true);
+        axios.post("https://flipin-store.herokuapp.com/product.php", {category: categoryFromUrl})
         .then(({data}) => {
-            setItemsArray(data);
-            setDisplayArray(data);
-            setisLoading(false);
+            if (data.responseCode === 200) {
+              setItemsArray(data.productItems);
+              setDisplayArray(data.productItems);
+              setisLoading(false);
+            }
         })
         .catch(e => console.log(e));
-    }, []);
+    }, [categoryFromUrl]);
 
     const handleCategoryChange = (type) => {
         setFilterVar(prev => ({...prev, categories: type}));
@@ -68,21 +74,19 @@ const Shop = () => {
               ))}
             </ul>
           </div>
-          <span>Furniture</span>
-          <span>Clothing</span>
-          <span>Jewellery</span>
+          <Link to="/shop/Furniture">Furniture</Link >
+          <Link to="/shop/Clothing">Clothing</Link >
+          <Link to="/shop/Jewellery">Jewellery</Link >
         </div>
         <div className="main">
           <h2>Shop</h2>
           <div className="main__details">
-            <span>{`${20} new products`}</span>
+            <span>{`${displayArray.length} new products`}</span>
             <div className="main__details-sort">
               <span>SORT BY: </span>
               <span>{filterVar.sort}</span>
               <Arrow onClick={() => setSortOpen((prev) => !prev)} />
-              <div
-                className={sortOpen ? "sort__dropdown open" : "sort__dropdown"}
-              >
+              <div className={sortOpen ? "sort__dropdown open" : "sort__dropdown"}>
                 <ul>
                   {sortType.map((item) => (
                     <li
@@ -98,7 +102,7 @@ const Shop = () => {
           </div>
         </div>
           {isLoading ? (
-            <div className="loader">
+            <div className="loader" style={{height: "60vh"}}>
               <CircularProgress />
             </div>
           ) : (

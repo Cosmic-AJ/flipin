@@ -47,7 +47,7 @@ const SignUp = () => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if(validations.noError(error)){
-            axios.post('https://flipin-store-api.herokuapp.com/signup.php',{
+            axios.post('https://flipin-store.herokuapp.com/signup.php',{
                 isSeller,
                 name, 
                 email, 
@@ -60,9 +60,12 @@ const SignUp = () => {
                     localStorage.setItem("jwt",data.jwt);
                     localStorage.setItem("user",JSON.stringify(data.user));
                     dispatch({ type: "USER", payload: data.user });
-                    history.push('/profile', {
-                        needsRefresh: true
-                    });
+                    // history.push({
+                    //   pathname: "/profile",
+                    //   state: {
+                    //     needsRefresh: true,
+                    //   },
+                    // });
                 } else {
                     //show the user an error that occured in the registeration
                     console.log(data.error);

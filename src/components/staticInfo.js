@@ -2,23 +2,26 @@ export const footerInfo = [{
     id: 1,
     header: "Categories",
     list: [{
-        id: 1, name: "Accessories", to: "/shop"
+        id: 1, name: "Accessories", to: "/shop/Accessories"
     }, {
-        id: 2, name: "Jewellery", to: "/shop"
+        id: 2, name: "Jewellery", to: "/shop/Jewellery"
     }, {
-        id: 3, name: "Cosmetics", to: "/shop"
+        id: 3, name: "Cosmetics", to: "/shop/Cosmetics"
     }, {
-        id: 4, name: "Clothing", to: "/shop"
+        id: 4, name: "Clothing", to: "/shop/Clothing"
     }, {
-        id: 5, name: "Furniture", to: "/shop"
-    }],
+        id: 5, name: "Furniture", to: "/shop/Furniture"
+    }, {
+        id: 6, name: "Footwear", to: "/shop/Footwear"
+    }
+    ],
 },{
     id: 2,
     header: "Pages",
     list: [{
         id: 1, name: "About", to: "/about",
     }, {
-        id: 2, name: "Shop", to: "/shop"
+        id: 2, name: "Shop", to: "/shop/All"
     }, {
         id: 3, name: "Log in", to: "/login"
     }, {

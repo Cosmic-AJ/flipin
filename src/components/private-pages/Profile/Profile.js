@@ -10,13 +10,14 @@ import validations from "../../../helperFunctions/validation";
 import ErrorOutlineIcon from "@material-ui/icons/ErrorOutline";
 import MuiAlert from "@material-ui/lab/Alert";
 import EditRoundedIcon from "@material-ui/icons/EditRounded";
-import { useLocation } from "react-router";
+import { useHistory, useLocation } from "react-router";
 
 
 const Profile = () => {
    //Init Variables
    const {state, dispatch} = useContext(UserContext);
    const { state: stateFromPush } = useLocation();
+   const history = useHistory();
    
    //State
    const [user, setUser] = useState({});
@@ -34,6 +35,11 @@ const Profile = () => {
    const [pincode, setPincode] = useState("");
    const [image, setImage] = useState("");
    const [src, setSrc] = useState("");
+   const [Toast, setToast] = useState({
+     open: false,
+     severity: "",
+     text: "",
+   });
    const [editable, setEditable] = useState("");
    const [error, setError] = useState({
       MobileNo: "",
@@ -47,19 +53,23 @@ const Profile = () => {
       image: "",
    });
 
-
+    //Components
+    const Alert = (props) => {
+      return <MuiAlert elevation={6} variant="filled" {...props} />;
+    };
 
    //Use Effects
-   useEffect(()=>{
-      if (stateFromPush && stateFromPush.needsRefresh) {
-        window.location.reload();
-      }
-      if(!state.hasAddress){
-         setPopupOpen(true);
-      }
-      axios.get("https://flipin-store-api.herokuapp.com/getprofile.php", authHeader)
+   useEffect(() => {
+      axios.get("https://flipin-store.herokuapp.com/getprofile.php", authHeader)
         .then(({ data: {user},data }) => {
           if (data.responseCode === 200) {
+            if(user.email !== state.email){
+              window.location.reload();
+              return;
+            }
+            else if (!state.hasAddress) {
+              setPopupOpen(true);
+            }
             setUser(data.user);
             setName(user.name);
             setEmail(user.email);
@@ -80,6 +90,14 @@ const Profile = () => {
 
 
    //Handler Functions
+
+   const handleToastClose = (event, reason) => {
+     if (reason === "clickaway") {
+       return;
+     }
+     setToast(prev => ({...prev, open: false}));
+   };
+
    const handleClose = () => setPopupOpen(false);
 
    const handlePhone = (e) => {
@@ -132,7 +150,7 @@ const Profile = () => {
      if (validations.noError(error)) {
        setLoading("submit");
         if (!state.isSeller) {
-          axios.post("https://flipin-store-api.herokuapp.com/setprofile.php", {
+          axios.post("https://flipin-store.herokuapp.com/setprofile.php", {
               phoneNumber: phone,
               firstLineAddress: addressLineOne,
               secondLineAddress: addressLineTwo,
@@ -143,12 +161,24 @@ const Profile = () => {
           }, authHeader)
             .then((res) => {
               if (res.data.responseCode === 204) {
-                console.log(res.data);
                 dispatch({ type: "ADDRESS", payload: {...state, hasAddress: true}});
                 localStorage.setItem(
                   "user",
                   JSON.stringify({ ...state, hasAddress: true })
                 );
+                setToast({
+                  open: true,
+                  severity: "success",
+                  text: "Profile Updated Successfully"
+                });
+                setLoading(false);
+                history.push("/dashboard");
+              } else {
+                setToast({
+                  open: true,
+                  severity: "error",
+                  text: res.data.error,
+                });
                 setLoading(false);
               }
             })
@@ -170,9 +200,8 @@ const Profile = () => {
          country,
          pincode,
        };
-       console.log(user);
        if(user.logo === src){
-         axios.post("https://flipin-store-api.herokuapp.com/setprofile.php", userFromInput, authHeader)
+         axios.post("https://flipin-store.herokuapp.com/setprofile.php", userFromInput, authHeader)
          .then((res) => {
            if (res.data.responseCode === 204) {
              console.log(res.data);
@@ -184,7 +213,20 @@ const Profile = () => {
                "user",
                JSON.stringify({ ...state, hasAddress: true })
              );
+             setToast({
+                  open: true,
+                  severity: "success",
+                  text: "Profile Updated Successfully"
+             });
              setLoading(false);
+             history.push("/dashboard");
+           } else {
+             setToast({
+                  open: true,
+                  severity: "error",
+                  text: res.data.error,
+                });
+                setLoading(false);
            }
          })
          .catch((e) => console.log(e));
@@ -192,7 +234,7 @@ const Profile = () => {
          axios.post("https://api.cloudinary.com/v1_1/flipin/image/upload", data)
         .then(({ data: {secure_url: url} }) => {
           userFromInput.logo = url;
-          axios.post("https://flipin-store-api.herokuapp.com/setprofile.php", userFromInput, authHeader)
+          axios.post("https://flipin-store.herokuapp.com/setprofile.php", userFromInput, authHeader)
           .then((res) => {
             if (res.data.responseCode === 204) {
               console.log(res.data);
@@ -205,6 +247,20 @@ const Profile = () => {
                 "user",
                 JSON.stringify({ ...state, hasAddress: true })
               );
+              setToast({
+                  open: true,
+                  severity: "success",
+                  text: "Profile Updated Successfully"
+             });
+             setLoading(false);
+             history.push("/dashboard");
+            } else {
+              setToast({
+                  open: true,
+                  severity: "error",
+                  text: res.data.error,
+                });
+                setLoading(false);
             }
           })
           .catch((e) => console.log(e));
@@ -226,8 +282,18 @@ const Profile = () => {
            Please add your address before you can start using this application!
          </h3>
        </Popup>
-       {loading==="init"? (
-         <div className="loader" style={{height: "80vh"}}>
+       <Snackbar
+         open={Toast.open}
+         autoHideDuration={5000}
+         onClose={handleToastClose}
+         anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+       >
+         <Alert onClose={handleToastClose} severity={Toast.severity}>
+           {Toast.text}
+         </Alert>
+       </Snackbar>
+       {loading === "init" ? (
+         <div className="loader" style={{ height: "80vh" }}>
            <CircularProgress />
          </div>
        ) : (
@@ -251,8 +317,15 @@ const Profile = () => {
                {state.isSeller && (
                  <div>
                    <h2 className="seller__membership">Membership</h2>
-                   <span className={user.premiumMember? "seller__premium" : "seller__regular"}>
-                     {user.premiumMember ? "Premium" : "Regular"}
+                   <span
+                     onClick={() => history.push("/get-premium")}
+                     className={
+                       user.premiumMember === "YES"
+                         ? "seller__premium"
+                         : "seller__regular"
+                     }
+                   >
+                     {user.premiumMember === "YES" ? "Premium" : "Regular"}
                    </span>
                    <p></p>
                  </div>
@@ -260,35 +333,45 @@ const Profile = () => {
              </section>
              <div className="seller">
                <h2 className="seller__head">Personal Profile</h2>
-               {state.isSeller && 
-               (src ? (
-                 <div className="seller__logo">
-                   <img src={src} alt={state.name} />
-                   <label
-                     className={editable ? "logo__edit-icon" : "hide"}
-                     htmlFor="file-upload"
-                   >
-                     <EditRoundedIcon />
-                   </label>
-                   <input
-                     type="file"
-                     id="file-upload"
-                     hidden
-                     accept="image/*"
-                     onChange={handelImageChange}
-                   />
-                 </div>
-               ) : (
-                 <>
-                   <label htmlFor="file-upload">
-                     <div className="image-input" id="image-upload-button">
-                       <img src={camera} alt="camera icon" />
-                       <span className="upload">Upload Picture</span>
-                     </div>
-                   </label>
-                   <input type="file" id="file-upload" hidden />
-                 </>
-               ))}
+               {state.isSeller &&
+                 (src ? (
+                   <div className="seller__logo">
+                     <img src={src} alt={state.name} />
+                     <label
+                       className={editable ? "logo__edit-icon" : "hide"}
+                       htmlFor="file-upload"
+                     >
+                       <EditRoundedIcon />
+                     </label>
+                     <input
+                       type="file"
+                       id="file-upload"
+                       hidden
+                       accept="image/*"
+                       onChange={handelImageChange}
+                     />
+                   </div>
+                 ) : (
+                   <>
+                     <label htmlFor="file-upload">
+                       <div
+                         className={`image-input ${!editable? 'disabled' : ''}`}
+                         id="image-upload-button"
+                       >
+                         <img src={camera} alt="camera icon" />
+                         <span className="upload">Upload Picture</span>
+                       </div>
+                     </label>
+                     <input
+                       disabled={!editable}
+                       type="file"
+                       id="file-upload"
+                       hidden
+                       accept="image/*"
+                       onChange={handelImageChange}
+                     />
+                   </>
+                 ))}
 
                <form className="profile-grid" onSubmit={handleSubmit}>
                  <div className="form-input-container">
@@ -446,11 +529,11 @@ const Profile = () => {
 
                  <div className="seller__submit-container">
                    <button
-                    disabled={loading==="submit"}
+                     disabled={loading === "submit"}
                      onClick={handleSubmit}
                      className="seller__button-submit"
                    >
-                     Submit
+                     SUBMIT
                    </button>
                  </div>
                </form>

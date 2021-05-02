@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 
 //Relative imports
 import { ReactComponent as Arrow } from "../../../images/arrow.svg";
+
 import "../../../styles/Shop.css";
 import { filterAndSort } from "../../../helperFunctions/filter";
 import { sortType } from "../../staticInfo";
 import axios from "axios";
-import { CircularProgress } from "@material-ui/core";
+import { CircularProgress, Tooltip } from "@material-ui/core";
 import Post from "../../public-pages/Post";
 import { authHeader } from "../../staticInfo";
 import { Link } from "react-router-dom";
@@ -20,7 +21,7 @@ const Shop = () => {
   });
 
   useEffect(() => {
-    axios.get("https://flipin-store-api.herokuapp.com/listings.php", authHeader)
+    axios.get("https://flipin-store.herokuapp.com/listings.php", authHeader)
       .then(({ data }) => {
         if(data.responseCode === 200){
           setDisplayArray(data.products);
@@ -77,6 +78,7 @@ const Shop = () => {
                     name={post.name}
                     bid={post.lowestBid}
                     location={post.location}
+                    showBidPlaced={post.bidPlaced}
                   />
                 </Link>
               </div>
